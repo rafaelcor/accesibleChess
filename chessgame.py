@@ -70,7 +70,7 @@ class Chess:
         self.pieza_seleccionada_pasada = None
         self.cuadrado = False
         self.turno = "negras"
-        
+        self.contador = 0
         self.reloj_blancas = None
         self.reloj_negras = None
         
@@ -99,12 +99,19 @@ class Chess:
                         if x <= event.pos[0] and x + 75 >= event.pos[0] and y <= event.pos[1] and y+75 >= event.pos[1]:
                             #print self.pieza_en_bloque([x, y])
                             print x, y
-                            
+                            if self.contador == 0:
+                                self.pieza_seleccionada_pasada = self.pieza_en_bloque([x, y])
+                            self.contador += 1
                             if self.pieza_seleccionada is not None and self.obtener_color_pieza(self.pieza_seleccionada) == self.turno:
+
 
                                 if self.pieza_en_bloque([x, y]) is not None and self.obtener_color_pieza(self.pieza_en_bloque([x, y])) == self.obtener_color_inverso(self.turno):
                                     print "L118: %s" % self.pieza_en_bloque([x, y])
                                     self.comer_pieza(self.pieza_en_bloque([x, y]))
+                                    self.actualizar()
+                                    print self.pieza_seleccionada_pasada
+                                    self.mover_pieza(self.pieza_seleccionada_pasada, [x, y])
+                                    self.actualizar()
 
                                 mp = self.mover_pieza(self.pieza_seleccionada, [x, y])
                                 if mp[0]:
@@ -196,6 +203,10 @@ class Chess:
                     pieza[2] = nuevaPos[0]
                     pieza[3] = nuevaPos[1]
                     movido = True
+                elif self.obtener_color_pieza(self.pieza_en_bloque([nuevaPos[0], nuevaPos[1]])) == "blancas":
+                    pieza[2] = nuevaPos[0]
+                    pieza[3] = nuevaPos[1]
+                    movido = True
 
             elif pieza[1] == "torre" and not self.pieza_en_bloque([nuevaPos[0], nuevaPos[1]]):
                 #adelante
@@ -248,6 +259,7 @@ class Chess:
         else:
             self.piezas_negras_comidas.append(pieza)
             self.piezas_negras.remove(pieza)
+        self.cambiar_turno()
 
     
     def pieza_en_bloque(self, pos):
