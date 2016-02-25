@@ -100,37 +100,29 @@ class Chess:
                             #print self.pieza_en_bloque([x, y])
                             print x, y
                             
-
-                            
-                            for piezab in self.piezas_blancas:
-                                if piezab[2] == x and piezab[3] == y:
-                                    #print "%d %s blanco/a" % (piezab[0], piezab[1])
-                                    self.pieza_seleccionada = piezab
-                            
-                            for piezan in self.piezas_negras:
-                                if piezan[2] == x and piezan[3] == y:
-                                    #self.obtener_obstaculos(piezan, 2)
-                                    #print "%d %s negroo/a" % (piezan[0], piezan[1])
-                                    self.pieza_seleccionada = piezan
-                            
                             if self.pieza_seleccionada is not None and self.obtener_color_pieza(self.pieza_seleccionada) == self.turno:
 
-                                if self.obtener_color_pieza(self.pieza_en_bloque([x, y])) == self.obtener_color_inverso(self.turno):
+                                if self.pieza_en_bloque([x, y]) is not None and self.obtener_color_pieza(self.pieza_en_bloque([x, y])) == self.obtener_color_inverso(self.turno):
                                     print "L118: %s" % self.pieza_en_bloque([x, y])
                                     self.comer_pieza(self.pieza_en_bloque([x, y]))
-                                    mp = self.mover_pieza(self.pieza_seleccionada, [x, y])
+
+                                mp = self.mover_pieza(self.pieza_seleccionada, [x, y])
+                                if mp[0]:
                                     self.actualizar()
                                     self.pieza_seleccionada = None
                                     self.cambiar_turno()
                                     self.cuadrado = False
-
-                                else:
-                                    mp = self.mover_pieza(self.pieza_seleccionada, [x, y])
-                                    if mp[0]:
-                                        self.actualizar()
-                                        self.pieza_seleccionada = None
-                                        self.cambiar_turno()
-                                        self.cuadrado = False
+                            else:
+                                for piezab in self.piezas_blancas:
+                                    if piezab[2] == x and piezab[3] == y:
+                                        #print "%d %s blanco/a" % (piezab[0], piezab[1])
+                                        self.pieza_seleccionada = piezab
+                                
+                                for piezan in self.piezas_negras:
+                                    if piezan[2] == x and piezan[3] == y:
+                                        #self.obtener_obstaculos(piezan, 2)
+                                        #print "%d %s negroo/a" % (piezan[0], piezan[1])
+                                        self.pieza_seleccionada = piezan
                             
                             if self.cuadrado:
                                 self.actualizar()
