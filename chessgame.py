@@ -67,6 +67,7 @@ class Chess:
         self.cursor_y = 0
         self.lista_cuadros = []
         self.pieza_seleccionada = None
+        self.pieza_seleccionada_pasada = None
         self.cuadrado = False
         self.turno = "negras"
         
@@ -97,21 +98,9 @@ class Chess:
                     for x, y in self.lista_cuadros:
                         if x <= event.pos[0] and x + 75 >= event.pos[0] and y <= event.pos[1] and y+75 >= event.pos[1]:
                             #print self.pieza_en_bloque([x, y])
-                            print x,y
-                            if self.pieza_seleccionada != None and self.obtener_color_pieza(self.pieza_seleccionada) == self.turno:
-                                #print 1
-                                mp = self.mover_pieza(self.pieza_seleccionada, [x, y])
-                                if mp[0]:
-                                    if not mp[1]: 
-                                        self.actualizar()
-                                        self.pieza_seleccionada = None
-                                        self.cambiar_turno()
-                                        self.cuadrado = False
-                                    else:
-                                        self.actualizar()
-                                        #self.pieza_seleccionada = None
-                                        self.cambiar_turno()
-                                        self.cuadrado = False
+                            print x, y
+                            
+
                             
                             for piezab in self.piezas_blancas:
                                 if piezab[2] == x and piezab[3] == y:
@@ -123,6 +112,25 @@ class Chess:
                                     #self.obtener_obstaculos(piezan, 2)
                                     #print "%d %s negroo/a" % (piezan[0], piezan[1])
                                     self.pieza_seleccionada = piezan
+                            
+                            if self.pieza_seleccionada is not None and self.obtener_color_pieza(self.pieza_seleccionada) == self.turno:
+
+                                if self.obtener_color_pieza(self.pieza_en_bloque([x, y])) == self.obtener_color_inverso(self.turno):
+                                    print "L118: %s" % self.pieza_en_bloque([x, y])
+                                    self.comer_pieza(self.pieza_en_bloque([x, y]))
+                                    mp = self.mover_pieza(self.pieza_seleccionada, [x, y])
+                                    self.actualizar()
+                                    self.pieza_seleccionada = None
+                                    self.cambiar_turno()
+                                    self.cuadrado = False
+
+                                else:
+                                    mp = self.mover_pieza(self.pieza_seleccionada, [x, y])
+                                    if mp[0]:
+                                        self.actualizar()
+                                        self.pieza_seleccionada = None
+                                        self.cambiar_turno()
+                                        self.cuadrado = False
                             
                             if self.cuadrado:
                                 self.actualizar()
@@ -189,23 +197,14 @@ class Chess:
                     pieza[2] = nuevaPos[0]
                     pieza[3] = nuevaPos[1]
                     movido = True
-                elif pieza[3] - nuevaPos[1] == tam_ficha[0] and pieza[2] != nuevaPos[0] and self.obtener_color_pieza(self.pieza_en_bloque([nuevaPos[0], nuevaPos[1]])) == "blancas":
-                    print "comida"
-                    comida = self.pieza_en_bloque([nuevaPos[0], nuevaPos[1]])
-                    self.piezas_blancas_comidas.append(comida)
-                    self.piezas_blancas.remove(comida)
-                    pieza[2] = nuevaPos[0]
-                    pieza[3] = nuevaPos[1]
-                    comido = False
-                    movido = True
+
                 elif pieza[3] - nuevaPos[1] == tam_ficha[0] and pieza[2] == nuevaPos[0]:
                     print "ultim"
                     #print 2
                     pieza[2] = nuevaPos[0]
                     pieza[3] = nuevaPos[1]
                     movido = True
-                
-                
+
             elif pieza[1] == "torre" and not self.pieza_en_bloque([nuevaPos[0], nuevaPos[1]]):
                 #adelante
                 distancia = abs(self.pixeles_a_distancia(abs(nuevaPos[1] - pieza[3])))
@@ -236,14 +235,28 @@ class Chess:
                 print nuevaPos[1] - pieza[3]
                 print distancia
                 print self.obtener_obstaculos(pieza, distancia, "adelante")
-                if nuevaPos[1] - pieza[3] <= 0 and len(self.obtener_obstaculos(pieza, distancia, "adelante")) == 0:
-                #   pass
+                if pieza[3] - nuevaPos[1] <= 0 and len(self.obtener_obstaculos(pieza, distancia, "adelante")) == 0:
                     pieza[2] = nuevaPos[0]
                     pieza[3] = nuevaPos[1]
-                    movido = True    
+                    movido = True
+
+
 
         self.actualizar()
         return [movido, comido]
+#num, tipo, x, y, imgsrc
+    def comer_pieza(self, pieza):
+        #self.obtener_color_pieza(pieza)
+        #comida = self.pieza_en_bloque([nuevaPos[0], nuevaPos[1]])
+        #self.piezas_blancas_comidas.append(comida)
+        #self.piezas_blancas.remove(comida)
+        if self.obtener_color_pieza(pieza) == "blancas":
+            self.piezas_blancas_comidas.append(pieza)
+            self.piezas_blancas.remove(pieza)
+        else:
+            self.piezas_negras_comidas.append(pieza)
+            self.piezas_negras.remove(pieza)
+
     
     def pieza_en_bloque(self, pos):
         toreturn = None
@@ -255,7 +268,6 @@ class Chess:
                     toreturn = piezan
         return toreturn
 
-    
     def obtener_obstaculos(self, pieza, distancia, direccion):
         posiciones = []
         fichas = []
@@ -278,18 +290,13 @@ class Chess:
             for i in range(0, distancia):
                 posiciones.append([self.cursor_x + 75, self.cursor_y ])
                 self.cursor_x += 75
-        #print posiciones
-        #self.cursor_x = 0
-        #self.cursor_y = 0
         
         for bloque in posiciones:
-            if self.pieza_en_bloque(bloque) != None:
+            if self.pieza_en_bloque(bloque) is not None:
                 fichas.append(self.pieza_en_bloque(bloque))
-        
-        #print posiciones
+
         return fichas
-        
-    
+
     def obtener_posibilidades(self, pieza):
         pass
     
@@ -304,10 +311,15 @@ class Chess:
             self.turno = "negras"
         else:
             self.turno = "blancas"
-    
+
     def pixeles_a_distancia(self, pixeles):
         return pixeles / 75
-        
+
+    def obtener_color_inverso(self, color):
+        if color == "blancas":
+            return "negras"
+        else:
+            return "blancas"
         
 if __name__ == "__main__":
     Chess()
